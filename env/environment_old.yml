@@ -1,0 +1,27 @@
+name: scp-pipeline-old
+# Old environment: Replicate original DEP analysis (DEP 1.26 original)
+# R 4.4.1 + Bioconductor 3.19 + DEP 1.26.0 + SummarizedExperiment 1.34
+# SE 1.34 is old version without strict assays<- check, DEP original impute/add_rejections work properly
+#
+# Note: r44 build conda packages will not upgrade R to 4.5
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - r-base=4.4.1
+  # Step 2 required CRAN packages (r44 build, avoid R in-source compilation failures)
+  - r-matrix
+  - r-png
+  - r-openssl
+  - r-data.table
+  - r-reticulate
+  - r-rspectra
+  - r-umap
+  - r-imputelcmd
+  - r-optparse
+  - r-yaml
+  - r-tibble
+  - r-ggplot2
+  - r-limma
+  # Install via R's BiocManager (see scripts/install_r_packages_old.R)
+  # Bioconductor 3.19: DEP=1.26.0, SummarizedExperiment=1.34 (old version)

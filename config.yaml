@@ -1,0 +1,93 @@
+# ============================================================
+# Single-Cell Proteomics Pipeline Configuration
+# ============================================================
+
+# --- Input/Output ---
+input:
+  raw_data: "test/test_raw_data.tsv"
+  exp_design: "test/test_exp_design.csv"
+
+output:
+  dir: "results"
+  prefix: "scp_analysis"
+
+# --- Step 1: Data Preprocessing ---
+steps:
+  step1: true                    # Preprocessing (dependency for subsequent steps, usually keep as true)
+  step2: true                    # Differential expression analysis
+  step3: true                    # Seurat clustering
+  step4: true                   # Scanpy clustering (choose one of step3 or step4)
+
+preprocess:
+  # Columns to drop (exact name match or suffix match)
+  drop_columns:
+    - "SequencesIdentified"     # Drop columns ending with this
+    - "PG.Qvalue"
+    - "PG.Organisms"
+    - "PG.ProteinDescriptions"
+  # Drop protein rows where all sample values are NaN
+  drop_all_nan_rows: true
+  # Exclude samples with these keywords in column names (supports regex)
+  exclude_sample_patterns:
+    - "30Cell"
+  # Sample column renaming regex
+  # Column name format: [N] AraHypho_{condition}_JAL_biaopi_{CellType}_{date}_...
+  # Capture group 1=number, capture group 2=condition, capture group 3=CellType
+  rename_pattern: '^\[(\d+)\]\s+AraHypho_(\w+?)_JAL'
+  rename_template: "{condition}_{number}"
+
+# --- Step 2: Differential Expression Analysis ---
+de_analysis:
+  input_file: "results/scp_analysis_preprocessed.tsv"  # Input: output from step1
+  control_name: "control"
+  imputation_method: "MinDet"       # by_group, MinDet, MinProb, knn, zero
+  alpha: 0.05                      #p.adj
+  lfc_threshold: 1.2               # linear fold change, code uses log2(1.2)
+  filter_missval: null             # null=no filtering, or integer (max missing values per group)
+  umap_n_neighbors: 5
+  pca_n_features: null             # null=use all features
+
+# --- Step 3: Seurat Clustering (Option A) ---
+seurat:
+  input_file: "results/scp_analysis_preprocessed.tsv"  # Input: output from step1
+  run: true
+  normalization: "LogNormalize"  # LogNormalize or SCTransform
+  scale_factor: 1000
+  n_variable_features: 800
+  pca_dims: 10
+  n_neighbors: 20
+  min_dist: 0.05
+  resolution: 1.0
+  na_fill_method: "zero"
+  min_cells: 1
+  min_features: 1
+  marker_test: "wilcox"
+  marker_logfc_threshold: 0.25
+  marker_min_pct: 0.25
+  top_n_markers: 50
+
+# --- Step 4: Scanpy Clustering (Option B, choose one of Step3 or Step4) ---
+scanpy:
+  input_file: "results/scp_analysis_preprocessed.tsv"  # Input: output from step1
+  run: false
+  na_fill_method: "zero"
+  min_genes: 390
+  min_cells: 3
+  target_sum: 10000
+  hv_min_mean: 0.0125
+  hv_max_mean: 4.0
+  hv_min_disp: 0.1
+  n_neighbors: 30
+  n_pcs: 50
+  leiden_resolution: 1
+  umap_min_dist: 0.2
+  marker_method: "wilcoxon"
+  top_n_markers: 50
+  scale_max_value: 10
+
+# --- Plotting ---
+plotting:
+  format: "pdf"
+  dpi: 300
+  width: 8
+  height: 6
