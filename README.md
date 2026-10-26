@@ -2,6 +2,9 @@
 
 A config-driven pipeline for analyzing single-cell proteomics data from Spectronaut DIA output.
 
+Please cite:
+Jiang A, Han Y, Liu X, et al. Deep single-cell proteomics reveals cellular heterogeneity in the cold response of Arabidopsis leaves[J]. Plant Communications, 2026.
+
 ## Overview
 
 ```
